@@ -28,3 +28,6 @@ coverage/
 .idea/
 .vscode/
 *.swp
+
+# Claude Code 로컬 설정 (스킬은 커밋한다 — 저장소 규약의 일부다)
+.claude/settings.local.json
