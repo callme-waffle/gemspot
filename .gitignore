@@ -1,0 +1,30 @@
+# 의존성
+node_modules/
+.pnpm-store/
+
+# Next 빌드 산출물
+.next/
+out/
+build/
+next-env.d.ts
+
+# Panda 생성 트리 — panda.config.ts의 outdir. `pnpm install`의 prepare 훅
+# (panda codegen)이 만든다. 커밋하지 않는 이유: 토큰 한 줄 고칠 때마다 생성
+# 파일 수백 줄이 diff에 섞여 리뷰가 불가능해진다.
+styled-system/
+.panda/
+
+# 테스트·타입 검사 캐시
+coverage/
+*.tsbuildinfo
+
+# 로컬 환경 변수 (예제는 .env.example로 커밋한다)
+.env
+.env.local
+.env*.local
+
+# 에디터·OS
+.DS_Store
+.idea/
+.vscode/
+*.swp

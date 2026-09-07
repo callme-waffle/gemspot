@@ -1,0 +1,14 @@
+# 워크스페이스를 나누려고 두는 파일이 아니다 — pnpm 12부터 저장소 단위 설정이
+# package.json에서 이 파일로 옮겨졌고, `allowBuilds`가 그중 하나다.
+#
+# 설치 스크립트(postinstall)는 기본이 **거부**다. 공급망 사고가 가장 자주 오는
+# 통로이고, 대부분의 패키지는 스크립트 없이도 동작한다. 여기 이름을 적는 것은
+# "이 패키지는 스크립트 없이는 못 쓴다"를 확인했다는 뜻이다.
+allowBuilds:
+  # 네이티브 바이너리를 내려받는 postinstall이 없으면 아예 실행되지 않는다.
+  # vitest(vite)와 Panda 양쪽이 쓴다.
+  esbuild: true
+  # eslint-import-resolver-typescript 경유. postinstall은 플랫폼 네이티브
+  # 바이너리 폴백 체크인데, 바이너리는 optionalDependencies로 이미 설치되므로
+  # 스크립트 없이도 동작한다 — 위 원칙대로 거부.
+  unrs-resolver: false

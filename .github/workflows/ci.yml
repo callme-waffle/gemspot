@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# 같은 브랜치에 push가 이어지면 앞의 실행을 취소한다. 이미 낡은 커밋의 결과를
+# 기다릴 이유가 없다.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          # .tool-versions가 로컬과 CI의 단일 소스다 — 여기에 버전을 다시
+          # 적으면 둘이 어긋난다.
+          node-version-file: .tool-versions
+          cache: pnpm
+
+      # --frozen-lockfile: 락파일과 package.json이 어긋나면 조용히 해결하지 말고
+      # 실패시킨다. prepare 훅이 여기서 panda codegen을 돌려 styled-system/을 만든다.
+      - run: pnpm install --frozen-lockfile
+
+      # 네 게이트를 따로 돌린다. 하나로 묶으면 어디서 깨졌는지 로그를 뒤져야 한다.
+      - run: pnpm lint
+      - run: pnpm check-types
+      - run: pnpm test
+      - run: pnpm build

@@ -1,0 +1,54 @@
+{
+  "name": "gemspot",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "check-types": "next typegen && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "format": "prettier --write \"**/*.{ts,mts,tsx,js,jsx,json,md,mjs,cjs,yml,yaml,css}\" --ignore-path .prettierignore --cache",
+    "format:check": "prettier --check \"**/*.{ts,mts,tsx,js,jsx,json,md,mjs,cjs,yml,yaml,css}\" --ignore-path .prettierignore --cache",
+    "prepare": "panda codegen"
+  },
+  "dependencies": {
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "^4.7.2",
+    "@eslint/js": "^10.0.1",
+    "@next/eslint-plugin-next": "^16.3.4",
+    "@pandacss/dev": "1.12.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/node": "^24.13.3",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitest/coverage-v8": "^5.0.0",
+    "eslint": "^10.9.1",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-boundaries": "^7.2.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
+    "jiti": "^2.7.0",
+    "jsdom": "^30.0.1",
+    "prettier": "^3.9.6",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.69.0",
+    "vitest": "^5.0.0"
+  },
+  "packageManager": "pnpm@12.3.1",
+  "engines": {
+    "node": ">=24.20.0"
+  }
+}

@@ -1,0 +1,39 @@
+/**
+ * 라우트 경로의 단일 소스.
+ *
+ * 화면에서 `href="/example/abc"`처럼 문자열을 직접 쓰면, 경로가 바뀔 때
+ * grep으로만 찾을 수 있는 링크가 남는다. 여기 함수를 거치면 시그니처가 바뀌는
+ * 순간 타입 검사가 호출부를 전부 짚어 준다.
+ *
+ * 이 모듈은 shared(최하단)라 아무것도 import하지 않는다 — 경로 조립은 순수
+ * 문자열 연산이므로 그럴 필요도 없다.
+ */
+
+export const HOME_PATH = '/';
+export const EXAMPLE_PATH = '/example';
+
+/**
+ * URL 세그먼트로 안전한 형태인지 검사한다.
+ *
+ * slug를 그대로 경로에 붙이면 `..`이나 `/`가 섞였을 때 다른 경로로 튄다.
+ * 만드는 쪽에서 한 번 막아 두는 편이, 받는 쪽마다 방어하는 것보다 싸다.
+ */
+export function isValidSlug(slug: string): boolean {
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
+}
+
+/**
+ * 상세 페이지 경로. 후행 슬래시는 붙이지 않는다 — Next 기본값
+ * (`trailingSlash: false`)과 맞춘다. 이 규칙을 바꾸려면 next.config.ts와
+ * 여기를 함께 고쳐야 한다.
+ *
+ * @throws slug가 URL 세그먼트로 쓸 수 없는 형태일 때. 조용히 인코딩해서
+ * 넘기지 않는 이유: 그러면 잘못된 slug가 404 페이지까지 살아서 가고, 원인이
+ * 데이터인지 라우팅인지 구분되지 않는다.
+ */
+export function examplePath(slug: string): string {
+  if (!isValidSlug(slug)) {
+    throw new Error(`라우트에 쓸 수 없는 slug입니다: ${JSON.stringify(slug)}`);
+  }
+  return `${EXAMPLE_PATH}/${slug}`;
+}

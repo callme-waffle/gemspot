@@ -1,0 +1,117 @@
+# gemspot
+
+레이어 경계와 디자인 토큰을 **컨벤션이 아니라 lint로** 강제하는 Next.js 스캐폴드.
+
+경계를 어기면 `pnpm lint`에서 막히고, 토큰 밖의 색을 쓰면 Panda 빌드에서 막힌다.
+문서에만 적힌 규칙은 6개월 뒤에 지켜지지 않는다는 전제로 만들어져 있다.
+
+## 요구 사항
+
+`.tool-versions`가 버전을 고정한다 (asdf/mise 사용 시 자동).
+
+- Node.js 24.20.0+
+- pnpm 12.3.1
+
+## 시작
+
+```bash
+pnpm install   # prepare 훅이 panda codegen까지 돌린다
+pnpm dev       # http://localhost:3000
+```
+
+`styled-system/`(Panda 생성 트리)은 커밋하지 않는다. clone 직후엔 없고
+`pnpm install`이 만든다 — 없으면 타입 검사가 `styled-system/css`를 못 찾는다.
+
+## 스크립트
+
+| 명령                 | 하는 일                                                         |
+| -------------------- | --------------------------------------------------------------- |
+| `pnpm dev`           | 개발 서버                                                       |
+| `pnpm build`         | 프로덕션 빌드                                                   |
+| `pnpm lint`          | ESLint (`--max-warnings=0` — 경고도 실패다)                     |
+| `pnpm check-types`   | `next typegen` + 프로덕션·테스트 두 tsconfig 프로그램 타입 검사 |
+| `pnpm test`          | vitest (node·jsdom 두 프로젝트)                                 |
+| `pnpm test:coverage` | 커버리지                                                        |
+| `pnpm format`        | prettier                                                        |
+
+## 아키텍처
+
+`src/` 안의 형제 폴더가 곧 레이어다. 각 레이어는 **자기보다 아래만** import한다.
+
+```
+src/app · components · hooks    화면. domain 배럴과 shared만 연다
+        ↓
+src/domain/<x>                  도메인 규칙. index.ts 배럴로만 공개
+        ↓
+src/lib/platform                바깥 세계 어댑터(HTTP·환경 변수)
+        ↓
+src/shared                      순수 계약. 아무것도 import하지 않는다
+```
+
+### 이 배치의 핵심
+
+**app이 platform을 직접 열 수 없다.** 데이터 접근이 전부 도메인을 지나므로,
+화면이 인프라 모양(HTTP 응답 형태, 환경 변수 이름)에 물들지 않는다. API가
+필드 이름을 바꿔도 고칠 곳은 `repository.ts` 한 파일이다.
+
+**도메인끼리도 서로를 모른다.** `eslint.config.mts`의 `boundaries/elements`에
+도메인을 하나씩 나열하는 이유가 그것이다 — `src/domain/*` 한 패턴으로 뭉치면
+같은 element type이 되어 도메인 간 import가 자유로워진다.
+
+### 강제 장치
+
+| 규칙                                    | 도구                                        |
+| --------------------------------------- | ------------------------------------------- |
+| import 방향 (레이어 순서)               | `eslint-plugin-boundaries`                  |
+| repository 직접 접근 금지 (배럴 강제)   | `no-restricted-imports`                     |
+| shared의 재수출·부수효과·`.tsx` 금지    | `no-restricted-syntax`                      |
+| 도메인 배럴의 모듈 최상위 부수효과 금지 | `no-restricted-syntax`                      |
+| 토큰 밖의 값                            | Panda `strictTokens`                        |
+| 토큰 밖의 **색** (`[#hex]` 이스케이프)  | `no-restricted-syntax` (NO_ESCAPED_HEX)     |
+| 인라인 `eslint-disable`                 | `noInlineConfig` + `eslint-comments/no-use` |
+
+마지막 줄이 중요하다. **룰을 끄는 결정은 `eslint.config.mts`에서만 한다.**
+소스에 흩어진 한 줄짜리 인가는 리뷰에서 diff 한 줄로 지나가고, 한 번 붙으면
+근거가 유효한지 아무도 다시 묻지 않는다.
+
+### 새 도메인을 추가하려면
+
+1. `src/domain/<이름>/` 을 만들고 `index.ts` 배럴을 둔다.
+2. `eslint.config.mts`의 `boundaries/elements`에 한 줄
+   (`{ type: '<이름>', pattern: 'src/domain/<이름>' }`) — **`layer-root`보다 앞에**.
+3. 같은 파일 `policies`에 한 줄 (무엇을 열 수 있는지).
+4. app 레이어의 `allow`에 그 type을 추가한다.
+
+## 스타일
+
+Panda CSS. 토큰 정의는 전부 `panda/preset.ts`에 있고 두 층으로 나뉜다.
+
+- **원시 팔레트** (`slate.700`, `gem.600`) — 색 값 그 자체. 컴포넌트에서 직접
+  쓰지 않는다.
+- **시맨틱 토큰** (`bg.canvas`, `fg.muted`, `accent.base`) — 역할 이름. `_dark`
+  값을 함께 들고 있어서 컴포넌트는 테마를 모른 채 역할만 고른다.
+
+컴포넌트가 여는 문은 시맨틱 토큰뿐이다. 팔레트를 갈아끼워도 컴포넌트는 한 줄도
+바뀌지 않는다.
+
+테마는 `<html data-theme>`으로 전환한다. 첫 페인트 **전에** 도는 인라인 스크립트
+(`src/app/theme-script.ts`)가 localStorage → 시스템 설정 순으로 값을 정하므로
+FOUC가 없다. `useTheme`는 그 DOM 속성을 `useSyncExternalStore`로 구독한다 —
+DOM이 단일 진실이고 React state는 사본이다.
+
+## 테스트
+
+vitest 하나로 돌리되 **환경**만 둘로 나눈다.
+
+- `node` — `src/{shared,lib,domain}`의 순수 로직. jsdom을 띄우지 않는다.
+- `jsdom` — 나머지 `src`(app 레이어)의 컴포넌트·훅. RTL이 여기에만 붙는다.
+
+`vitest.config.mts`의 include, `tsconfig.test.json`의 include, `eslint.config.mts`의
+테스트 블록 셋이 대칭이다 — **한쪽을 고치면 셋을 함께 고쳐야 한다.**
+
+## 환경 변수
+
+`.env.example` 참고. `GEMSPOT_API_BASE_URL`을 비워 두면 도메인 repository가
+번들된 시드(`src/domain/example/seed.ts`)로 떨어지고, 화면에 `seed 데이터`
+배지가 뜬다 — 조용히 폴백해서 백엔드가 죽은 것을 아무도 모르는 상태를 만들지
+않기 위한 것이다.
