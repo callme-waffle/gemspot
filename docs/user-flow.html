@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>gemspot 유저 플로우 초안</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f7f7f9;
+        --surface: #ffffff;
+        --text: #16181d;
+        --muted: #4b5162;
+        --line: #c7ccd8;
+        --accent: #1f5fd0;
+        --confirmed: #0f6b3f;
+        --confirmed-bg: #e5f4ec;
+        --pending: #8a4b00;
+        --pending-bg: #fbeedd;
+        --later: #4a4a8a;
+        --later-bg: #ebeafa;
+        --risk: #a3121f;
+        --risk-bg: #fbe9eb;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #14161b;
+          --surface: #1d2027;
+          --text: #f0f2f6;
+          --muted: #b3bac9;
+          --line: #454b59;
+          --accent: #8fb4ff;
+          --confirmed: #7fd8a8;
+          --confirmed-bg: #16301f;
+          --pending: #f2be7c;
+          --pending-bg: #33260f;
+          --later: #b8b4f5;
+          --later-bg: #232145;
+          --risk: #ffa8ae;
+          --risk-bg: #3a1519;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 32px 20px 80px;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          15px/1.65 'Pretendard',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Apple SD Gothic Neo',
+          system-ui,
+          sans-serif;
+      }
+
+      main {
+        max-width: 940px;
+        margin: 0 auto;
+      }
+
+      header p {
+        color: var(--muted);
+        margin: 4px 0 0;
+      }
+
+      h1 {
+        font-size: 26px;
+        margin: 0;
+      }
+
+      h2 {
+        font-size: 19px;
+        margin: 48px 0 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid var(--line);
+      }
+
+      h3 {
+        font-size: 16px;
+        margin: 0 0 6px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 1px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+      }
+
+      .tag::before {
+        font-size: 8px;
+        line-height: 1;
+      }
+
+      .tag-confirmed {
+        color: var(--confirmed);
+        background: var(--confirmed-bg);
+      }
+      .tag-confirmed::before {
+        content: '●';
+      }
+
+      .tag-pending {
+        color: var(--pending);
+        background: var(--pending-bg);
+      }
+      .tag-pending::before {
+        content: '▲';
+      }
+
+      .tag-later {
+        color: var(--later);
+        background: var(--later-bg);
+      }
+      .tag-later::before {
+        content: '■';
+      }
+
+      .tag-risk {
+        color: var(--risk);
+        background: var(--risk-bg);
+      }
+      .tag-risk::before {
+        content: '✕';
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      :focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      .flow {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        counter-reset: step;
+      }
+
+      .flow > li {
+        padding-bottom: 14px;
+      }
+
+      .flow > li:last-child {
+        padding-bottom: 0;
+      }
+
+      .step {
+        background: var(--surface);
+        border-radius: 10px;
+        padding: 16px 18px;
+      }
+
+      .step-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .step-number {
+        counter-increment: step;
+        font-variant-numeric: tabular-nums;
+        font-weight: 800;
+        color: var(--accent);
+      }
+
+      .step-number::before {
+        content: 'STEP ' counter(step);
+      }
+
+      .owner {
+        margin-left: auto;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .step p {
+        margin: 0 0 8px;
+        color: var(--muted);
+      }
+
+      .screen {
+        display: inline-block;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--muted);
+        border: 1px dashed var(--line);
+        border-radius: 6px;
+        padding: 2px 8px;
+        margin-bottom: 8px;
+      }
+
+      .step ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .step li + li {
+        margin-top: 4px;
+      }
+
+      .aside {
+        margin: 12px 0 0;
+        padding-top: 10px;
+        border-top: 1px dashed var(--line);
+        font-size: 13px;
+      }
+
+      code {
+        font-size: 12px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      .branches {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .branch {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: var(--bg);
+      }
+
+      .branch h4 {
+        margin: 0 0 6px;
+        font-size: 14px;
+      }
+
+      .branch p {
+        margin: 0;
+        font-size: 13.5px;
+      }
+
+      .note {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-left: 5px solid var(--pending);
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin-top: 16px;
+      }
+
+      .note p:last-child {
+        margin-bottom: 0;
+      }
+
+   </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>gemspot 유저 플로우 초안</h1>
+      </header>
+
+      <h2>전체 플로우</h2>
+      <p>
+        웹으로 배포하므로 시작점은 <strong>사용자가 이미 저장해 둔 이미지를 올리는 것</strong>이다.
+      </p>
+      <ol class="flow">
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>이미지 업로드</h3>
+              <span class="tag tag-confirmed">확정</span>
+              <span class="owner">담당 · 상욱</span>
+            </div>
+            <span class="screen">화면 · 업로드</span>
+            <ul>
+              <li>업로드 버튼을 누르면 파일 선택창이 열리고, 앨범에 저장해 둔 스크린샷을 고른다</li>
+              <li>웹 표준 파일 업로드로 처리한다 — 스크린샷 감지나 공유 시트 같은 OS 동작에 기대지 않는다</li>
+              <li>여러 장 한 번에 올릴 수 있는지 <span class="tag tag-pending">미정</span></li>
+            </ul>
+            <p class="aside">
+              <strong>앱이었다면</strong> 공유하기 · 백탭 링크 · 스크린샷 자동 감지로 바로 넘어오게 할 수
+              있었다. 셋 다 OS 동작이 필요해 웹에서는 쓰지 않는다.
+            </p>
+          </section>
+        </li>
+
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>이미지에서 주소 추출</h3>
+              <span class="tag tag-confirmed">확정</span>
+              <span class="owner">담당 · 상욱</span>
+            </div>
+            <p>OCR로 이미지 속 텍스트를 읽어 주소를 뽑고, 결과를 사용자에게 알린다.</p>
+            <div class="branches">
+              <div class="branch">
+                <h4>성공</h4>
+                <p>추출됐다고 알린다 — 알럿 또는 결과 페이지 <span class="tag tag-pending">방식 미정</span></p>
+              </div>
+              <div class="branch">
+                <h4>실패</h4>
+                <p>OCR이 주소를 못 읽은 경우. 실패했다고 간단히 알리고 다음 단계의 실패 목록으로 보낸다</p>
+              </div>
+            </div>
+          </section>
+        </li>
+
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>추출 결과 목록</h3>
+              <span class="tag tag-confirmed">확정</span>
+            </div>
+            <span class="screen">화면 · 결과 목록 (탭 2개)</span>
+            <div class="branches">
+              <div class="branch">
+                <h4>탭 1 · 성공 목록</h4>
+                <p>주소가 잡힌 이미지들. 여기서 지도로 넘어간다</p>
+              </div>
+              <div class="branch">
+                <h4>탭 2 · 실패 목록</h4>
+                <p>
+                  OCR이 판별하지 못한 이미지들을 앨범처럼 모아 본다. 다시 시도하거나 주소를 직접 입력한다
+                  <span class="tag tag-pending">직접 입력 지원 여부 미정</span>
+                </p>
+              </div>
+            </div>
+          </section>
+        </li>
+
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>지도에 핀 찍기</h3>
+              <span class="tag tag-confirmed">확정</span>
+              <span class="owner">담당 · 가은</span>
+            </div>
+            <span class="screen">화면 · 지도</span>
+            <ul>
+              <li>지도는 이미 그려져 있는 상태에서 시작한다</li>
+              <li>이미지에서 뽑은 텍스트를 주소 · 좌표로 맞춰, 그 위치에 핀을 찍는다</li>
+              <li>핀을 찍은 위치로 지도를 이동시킨다</li>
+              <li>내 위치를 함께 보여줄지 <span class="tag tag-pending">미정</span> — 기능으로 넣을지부터 정해야 한다</li>
+            </ul>
+            <p class="aside">
+              <strong>네이버 Geocoding API</strong>에 OCR로 뽑은 주소 문자열을 <code>query</code>로 넘기면
+              <code>addresses[]</code>가 온다. 핀을 찍는 데 쓰는 값은 <code>x</code>(경도) ·
+              <code>y</code>(위도)이고 둘 다 문자열로 온다. 함께 오는 <code>roadAddress</code> ·
+              <code>jibunAddress</code>는 저장용, <code>addressElements</code>의 <code>SIDO</code> ·
+              <code>SIGUGUN</code>은 지역 필터용으로 쓸 수 있다. <code>meta.totalCount</code>가 0이면
+              결과가 없다는 뜻이므로 실패 목록으로 보낸다.
+            </p>
+          </section>
+        </li>
+
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>스팟 저장</h3>
+              <span class="tag tag-pending">미정 · 담당 미정</span>
+            </div>
+            <span class="screen">화면 · 저장 · 상세</span>
+            <p>미팅에서 "누군가 해줘"로 남은 영역이다. 저장 시 붙일 정보로 언급된 것:</p>
+            <ul>
+              <li>카테고리 분류 — AI가 분류하고 목록 필터로 쓴다</li>
+              <li>방문 여부 · 방문 횟수</li>
+              <li>한줄평 · 메모</li>
+            </ul>
+          </section>
+        </li>
+
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>내 스팟 지도 — 저장된 핀 보기</h3>
+              <span class="tag tag-pending">담당 미정</span>
+            </div>
+            <span class="screen">화면 · 내 스팟 지도</span>
+            <ul>
+              <li>저장해 둔 스팟들을 지도 위 핀으로 한눈에 본다</li>
+              <li>핀을 고르면 그 스팟의 상세로 간다 <span class="tag tag-pending">미정</span></li>
+              <li>기본은 1인 사용 <span class="tag tag-confirmed">확정</span></li>
+            </ul>
+          </section>
+        </li>
+
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>필터 · 카테고리</h3>
+              <span class="tag tag-pending">미정 · 담당 없음</span>
+            </div>
+            <p>
+              카테고리로 스팟을 걸러 보는 화면. 지도 보기와 분리했다. 지금은 맡은 사람이 없어 구현 시점이
+              정해지지 않았다.
+            </p>
+          </section>
+        </li>
+
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>스마트 동선 가이드</h3>
+              <span class="tag tag-confirmed">확정</span>
+              <span class="owner">담당 · 화균, 주히(고민중)</span>
+            </div>
+            <p>저장된 장소들을 모아 어디를 어떤 순서로 갈지 여정을 제안한다.</p>
+            <ul>
+              <li>제안의 입력 범위(전체 저장분 · 지역 · 기간) <span class="tag tag-pending">미정</span></li>
+            </ul>
+          </section>
+        </li>
+      </ol>
+
+      <h2>이후 확장 — 다 하고 나서</h2>
+      <ol class="flow">
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>MCP로 상용 AI 서비스 연결</h3>
+              <span class="tag tag-later">후순위</span>
+            </div>
+            <p>
+              외부 AI가 내가 스크랩한 장소 목록을 읽고, 키워드를 받아 장소를 제안한다. 미팅에서 "이건
+              나중에 합시다. 다 하고"로 정리됐다.
+            </p>
+          </section>
+        </li>
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>통계 · 리뷰 기반 추천</h3>
+              <span class="tag tag-later">후순위</span>
+              <span class="owner">담당 미정</span>
+            </div>
+            <ul>
+              <li>차트 — 예: 26년에 많이 가본 장소 TOP 10</li>
+              <li>리뷰를 반영한 비슷한 결의 AI 추천</li>
+              <li>광고 연결 <span class="tag tag-pending">아이디어 단계</span></li>
+            </ul>
+          </section>
+        </li>
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>다른 사람에게 공유</h3>
+              <span class="tag tag-later">후순위</span>
+            </div>
+            <p>1인 사용이 기본이고, 시간이 남으면 공유 기능을 추가하기로 했다.</p>
+          </section>
+        </li>
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>대화형 챗봇</h3>
+              <span class="tag tag-pending">미정</span>
+            </div>
+            <p>AI 활용 방향으로 언급만 됐고, 어느 화면에 어떻게 붙일지는 정해지지 않았다.</p>
+          </section>
+        </li>
+      </ol>
+
+      <h2>확정된 전제</h2>
+      <ul>
+        <li>앱 배포는 어려우므로 <strong>웹</strong>으로 진행한다</li>
+        <li>GitHub Organization은 유료라 쓰지 않고 <strong>개인 배포</strong>로 간다</li>
+        <li>기본은 1인 사용, 공유는 시간이 남으면 추가한다</li>
+        <li>앞으로 모든 진행은 GitHub 이슈로 관리한다</li>
+      </ul>
+
+    </main>
+  </body>
+</html>
