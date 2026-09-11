@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>gemspot 기능 명세 초안</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f7f7f9;
+        --surface: #ffffff;
+        --text: #16181d;
+        --muted: #4b5162;
+        --line: #c7ccd8;
+        --accent: #1f5fd0;
+        --diff-add: #e6ffec;
+        --diff-remove: #ffebe9;
+        --confirmed: #0f6b3f;
+        --confirmed-bg: #e5f4ec;
+        --pending: #8a4b00;
+        --pending-bg: #fbeedd;
+        --later: #4a4a8a;
+        --later-bg: #ebeafa;
+        --risk: #a3121f;
+        --risk-bg: #fbe9eb;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #14161b;
+          --surface: #1d2027;
+          --text: #f0f2f6;
+          --muted: #b3bac9;
+          --line: #454b59;
+          --accent: #8fb4ff;
+          --diff-add: #12261c;
+          --diff-remove: #2a1619;
+          --confirmed: #7fd8a8;
+          --confirmed-bg: #16301f;
+          --pending: #f2be7c;
+          --pending-bg: #33260f;
+          --later: #b8b4f5;
+          --later-bg: #232145;
+          --risk: #ffa8ae;
+          --risk-bg: #3a1519;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 32px 20px 80px;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          15px/1.65 'Pretendard',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Apple SD Gothic Neo',
+          system-ui,
+          sans-serif;
+      }
+
+      main {
+        max-width: 940px;
+        margin: 0 auto;
+      }
+
+      header p {
+        color: var(--muted);
+        margin: 4px 0 0;
+      }
+
+      h1 {
+        font-size: 26px;
+        margin: 0;
+      }
+
+      h2 {
+        font-size: 19px;
+        margin: 48px 0 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid var(--line);
+      }
+
+      h3 {
+        font-size: 16px;
+        margin: 0 0 6px;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 1px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+      }
+
+      .tag::before {
+        font-size: 8px;
+        line-height: 1;
+      }
+
+      .tag-confirmed {
+        color: var(--confirmed);
+        background: var(--confirmed-bg);
+      }
+      .tag-confirmed::before {
+        content: '●';
+      }
+
+      .tag-pending {
+        color: var(--pending);
+        background: var(--pending-bg);
+      }
+      .tag-pending::before {
+        content: '▲';
+      }
+
+      .tag-later {
+        color: var(--later);
+        background: var(--later-bg);
+      }
+      .tag-later::before {
+        content: '■';
+      }
+
+      .tag-risk {
+        color: var(--risk);
+        background: var(--risk-bg);
+      }
+      .tag-risk::before {
+        content: '✕';
+      }
+
+      a {
+        color: var(--accent);
+      }
+
+      :focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      .flow {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        counter-reset: step;
+      }
+
+      .flow > li {
+        padding-bottom: 14px;
+      }
+
+      .flow > li:last-child {
+        padding-bottom: 0;
+      }
+
+      .step {
+        background: var(--surface);
+        border-radius: 10px;
+        padding: 16px 18px;
+      }
+
+      .step-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .step-number {
+        counter-increment: step;
+        font-variant-numeric: tabular-nums;
+        font-weight: 800;
+        color: var(--accent);
+      }
+
+      .step-number::before {
+        content: 'STEP ' counter(step);
+      }
+
+      .owner {
+        margin-left: auto;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .step p {
+        margin: 0 0 8px;
+        color: var(--muted);
+      }
+
+      .screen {
+        display: inline-block;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--muted);
+        border: 1px dashed var(--line);
+        border-radius: 6px;
+        padding: 2px 8px;
+        margin-bottom: 8px;
+      }
+
+      .step ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .step li + li {
+        margin-top: 4px;
+      }
+
+      .aside {
+        margin: 12px 0 0;
+        padding-top: 10px;
+        border-top: 1px dashed var(--line);
+        font-size: 13px;
+      }
+
+      code {
+        font-size: 12px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      .chain {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 22px;
+        list-style: none;
+        margin: 0 0 12px;
+        padding: 0;
+      }
+
+      .chain > li {
+        flex: 1 1 160px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px 14px;
+        border-radius: 8px;
+        background: var(--bg);
+      }
+
+      .chain > li:not(:last-child)::after {
+        content: '→';
+        position: absolute;
+        right: -16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+      }
+
+      .chain span {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .cards {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .branches {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 12px;
+        margin-top: 12px;
+      }
+
+      .branch {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px 14px;
+        background: var(--bg);
+      }
+
+      .tight {
+        margin: 0 0 8px;
+        padding-left: 18px;
+        font-size: 13.5px;
+        color: var(--muted);
+      }
+
+      .tight-success,
+      .tight-failure {
+        color: var(--text);
+        padding: 8px 10px 8px 26px;
+        border-radius: 6px;
+      }
+
+      .tight-success {
+        background: var(--diff-add);
+      }
+
+      .tight-failure {
+        background: var(--diff-remove);
+      }
+
+      .tight li + li {
+        margin-top: 2px;
+      }
+
+      .branch p {
+        margin-top: 8px;
+      }
+
+      .branch h4 {
+        margin: 0 0 6px;
+        font-size: 14px;
+      }
+
+      .branch p {
+        margin: 0;
+        font-size: 13.5px;
+      }
+
+      .note {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-left: 5px solid var(--pending);
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin-top: 16px;
+      }
+
+      .note p:last-child {
+        margin-bottom: 0;
+      }
+
+   </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>gemspot 기능 명세 초안</h1>
+      </header>
+
+      <h2>메인 플로우</h2>
+      <p>
+        웹으로 배포하므로 시작점은 <strong>사용자가 이미 저장해 둔 이미지를 올리는 것</strong>이다.
+      </p>
+      <ol class="flow">
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>이미지 업로드</h3>
+              <span class="tag tag-confirmed">확정</span>
+              <span class="owner">담당 · 상욱</span>
+            </div>
+            <span class="screen">화면 · 업로드</span>
+            <ul>
+              <li>업로드 버튼을 누르면 파일 선택창이 열리고, 앨범에 저장해 둔 스크린샷을 고른다</li>
+              <li>기본은 웹 표준 파일 업로드로 처리한다</li>
+              <li>
+                모바일 웹에서 공유하기로 스크린샷 화면을 바로 받을 수 있으면(Web Share Target) 그렇게 구현한다
+                <span class="tag tag-pending">확인 필요</span>
+              </li>
+            </ul>
+            <div class="branches">
+              <div class="branch">
+                <h4>파일 업로드 — 4단계</h4>
+                <ol class="tight">
+                  <li>인스타그램에서 스크린샷을 찍는다</li>
+                  <li>홈 화면으로 나가 gemspot을 연다</li>
+                  <li>업로드 버튼을 누른다</li>
+                  <li>앨범에서 아까 그 사진을 찾아 고른다</li>
+                </ol>
+              </div>
+              <div class="branch">
+                <h4>공유하기 — 2단계</h4>
+                <ol class="tight">
+                  <li>인스타그램에서 공유하기를 누른다</li>
+                  <li>공유 목록에서 gemspot을 고른다</li>
+                </ol>
+                <p>
+                  앱을 설치하지 않아도 되고, 앨범에서 사진을 다시 찾는 과정이 사라진다. 다만 홈 화면에
+                  설치(PWA)해야 공유 목록에 뜨고 기기 · 브라우저를 탄다.
+                </p>
+              </div>
+            </div>
+          </section>
+        </li>
+
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>이미지에서 주소 추출</h3>
+              <span class="tag tag-confirmed">확정</span>
+              <span class="owner">담당 · 상욱</span>
+            </div>
+            <p>
+              OCR로 이미지 속 텍스트를 읽는다. 읽어내는 것은 <strong>장소와 가게명</strong>이고, 그 결과를
+              STEP 3으로 넘긴다. 갈리는 기준은 화면에 <strong>도로명 주소가 찍혀 있는지</strong> 하나다.
+              여기서 말하는 성공 · 실패는 <strong>OCR이 읽어냈는가</strong>이지, 지도에 핀이 찍혔는가가
+              아니다.
+            </p>
+            <ul>
+              <li>
+                한 장에 가게가 여러 곳 담긴 게시물이 있다(피롤츠 · 파브리키친이 한 화면). 주소가 둘 이상
+                나오면 각각을 따로 뽑는 쪽으로 구현한다
+                <span class="tag tag-pending">확인 필요</span>
+              </li>
+            </ul>
+            <div class="branches">
+              <div class="branch">
+                <h4>성공 — 주소가 찍혀 있다</h4>
+                <ol class="tight tight-success">
+                  <li>피롤츠 커피하우스 · 서울 용산구 한강대로 56-1, 2층</li>
+                  <li>파브리키친 · 서울 용산구 한강대로15길 23-6</li>
+                  <li>익스프레스노원바이미라쥬 · 서울 노원구 화랑로 608</li>
+                </ol>
+                <p>Geocoding에 넣어 좌표가 나올 가능성이 높다. 실제 변환은 STEP 4에서 한다.</p>
+              </div>
+              <div class="branch">
+                <h4>실패 — 지역명과 가게명뿐이다</h4>
+                <ol class="tight tight-failure">
+                  <li>한강동 · 용산역 · 용산구</li>
+                  <li>에그앤플라워 · 용산동2가</li>
+                </ol>
+                <p>
+                  번지가 없어 가게 위치를 특정할 수 없다. 동 이름만으로 핀을 찍으면 엉뚱한 곳에 꽂히므로
+                  실패로 보내 직접 입력을 받는다.
+                </p>
+              </div>
+            </div>
+          </section>
+        </li>
+
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>추출 결과 목록</h3>
+              <span class="tag tag-confirmed">확정</span>
+            </div>
+            <span class="screen">화면 · 결과 목록</span>
+            <p>
+              STEP 2에서 넘어온 데이터를 받아 <strong>성공했는지 실패했는지 알럿으로 먼저 알린다.</strong>
+              그다음 성공한 건과 실패한 건을 보여준다.
+            </p>
+            <ul>
+              <li>
+                보여주는 형태는 페이지 · 모달 · 바텀시트 중 하나로 푼다
+                <span class="tag tag-pending">확인 필요</span>
+              </li>
+              <li>
+                성공과 실패를 가르는 방법도 탭 · 목록 분리 · 필터 중에서 정한다
+                <span class="tag tag-pending">확인 필요</span>
+              </li>
+              <li>OCR 결과는 바로 저장되지 않는다. 이 화면에서 사용자가 확정해야 스팟이 된다</li>
+              <li>목록의 각 건마다 저장 · 삭제를 고를 수 있다</li>
+              <li>여러 건을 한 번에 저장하거나 삭제할 수 있어야 하는지 <span class="tag tag-pending">확인 필요</span></li>
+            </ul>
+            <div class="branches">
+              <div class="branch">
+                <h4>성공한 건</h4>
+                <p>
+                  주소가 잡힌 이미지들. 뽑힌 주소가 맞는지 사용자가 보고 <strong>저장할지 버릴지</strong>
+                  고른다. 저장을 고른 건만 STEP 4로 넘어간다
+                </p>
+              </div>
+              <div class="branch">
+                <h4>실패한 건</h4>
+                <p>
+                  OCR이 판별하지 못한 이미지들을 앨범처럼 모아 본다. <strong>주소를 직접 입력하거나,
+                  목록에서 삭제한다.</strong> 재시도는 두지 않는다 — 같은 사진을 다시 읽어봐야 결과가
+                  달라지지 않는다. 직접 입력한 건도 성공한 건과 같이 STEP 4로 보낸다
+                </p>
+              </div>
+            </div>
+          </section>
+        </li>
+
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>확정한 스팟 저장</h3>
+              <span class="tag tag-confirmed">확정</span>
+            </div>
+            <ul>
+              <li>화면이 아니다. 확정된 건을 서버로 보내는 내부 처리다</li>
+              <li>
+                STEP 3에서 확정한 주소를 좌표로 바꾼다. OCR로 뽑은 주소든 직접 입력한 주소든 여기서
+                한 번에 검증한다 — 좌표가 나오지 않으면 저장하지 않는다
+              </li>
+              <li>상호명 · 주소 · 좌표를 서버로 보낸다</li>
+              <li>별도 백엔드 없이 Next.js 하나로 처리한다</li>
+                            <li>어디에 저장할지 <span class="tag tag-pending">확인 필요</span></li>
+              <li>카테고리 분류를 함께 저장할지 <span class="tag tag-pending">미정</span> — AI가 분류하고 목록 필터로 쓰는 값이다</li>
+              <li>
+                성공하면 STEP 5로 넘어간다. 실패하면 STEP 3에 머문 채 알럿이나 토스트로 오류를 띄워
+                무엇이 잘못됐는지 눈에 보이게 한다
+              </li>
+            </ul>
+            <p class="aside">
+              <strong>네이버 Geocoding API</strong>에 OCR로 뽑은 주소 문자열을 <code>query</code>로 넘기면
+              <code>addresses[]</code>가 온다. 핀을 찍는 데 쓰는 값은 <code>x</code>(경도) ·
+              <code>y</code>(위도)이고 둘 다 문자열로 온다. 함께 오는 <code>roadAddress</code> ·
+              <code>jibunAddress</code>는 저장용, <code>addressElements</code>의 <code>SIDO</code> ·
+              <code>SIGUGUN</code>은 지역 필터용으로 쓸 수 있다. <code>meta.totalCount</code>가 0이면
+              결과가 없다는 뜻이므로 저장하지 않고 오류를 띄운다.
+            </p>
+          </section>
+        </li>
+
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <span class="step-number"></span>
+              <h3>지도에 핀 찍기</h3>
+              <span class="tag tag-confirmed">확정</span>
+              <span class="owner">담당 · 가은</span>
+            </div>
+            <span class="screen">화면 · 지도</span>
+            <ul>
+              <li>저장이 성공하면 이 화면으로 넘어와, 저장된 내용을 지도와 함께 다시 확인한다</li>
+              <li>저장된 좌표에 핀을 찍고, 지도를 그쪽으로 이동시킨다</li>
+              <li>화면 아래에는 저장된 정보를 함께 띄운다</li>
+              <li>닫으면 초기 화면으로 돌아간다</li>
+              <li>방금 찍은 핀만 보여준다. 저장된 핀 전체는 "내 스팟 지도"에서 본다</li>
+              <li>내 위치를 함께 보여줄지 <span class="tag tag-pending">미정</span> — 기능으로 넣을지부터 정해야 한다</li>
+            </ul>
+          </section>
+        </li>
+
+      </ol>
+
+      <h2>메인 플로우 외 세부 기능</h2>
+      <p>스팟을 저장한 뒤, 각각 따로 들어가는 화면이다.</p>
+      <ul class="cards">
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <h3>내 스팟 지도 — 저장된 핀 보기</h3>
+              <span class="tag tag-pending">담당 미정</span>
+            </div>
+            <span class="screen">화면 · 내 스팟 지도</span>
+            <ul>
+              <li>저장해 둔 스팟들을 지도 위 핀으로 한눈에 본다</li>
+              <li>핀을 고르면 그 스팟의 상세로 간다 <span class="tag tag-pending">미정</span></li>
+              <li>기본은 1인 사용 <span class="tag tag-confirmed">확정</span></li>
+            </ul>
+          </section>
+        </li>
+
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <h3>필터 · 카테고리</h3>
+              <span class="tag tag-pending">미정 · 담당 없음</span>
+            </div>
+            <p>
+              카테고리로 스팟을 걸러 보는 화면. 지도 보기와 분리했다. 지금은 맡은 사람이 없어 구현 시점이
+              정해지지 않았다.
+            </p>
+          </section>
+        </li>
+
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <h3>스마트 동선 가이드</h3>
+              <span class="tag tag-confirmed">확정</span>
+              <span class="owner">담당 · 화균, 주희(고민중)</span>
+            </div>
+            <p>
+              저장된 장소들을 모아 어디를 어떤 순서로 갈지 여정을 만든다.
+              <strong>출발점부터 한 곳씩 쌓아 올린다.</strong>
+            </p>
+            <ol class="chain">
+              <li>
+                <strong>출발점 고르기</strong>
+                <span>내 위치 · 지도에서 직접 찍기 · 저장된 목록에서 고르기</span>
+              </li>
+              <li>
+                <strong>1번 고르기</strong>
+                <span>저장된 스팟 중에서 다음 목적지를 고른다</span>
+              </li>
+              <li>
+                <strong>추가로 쌓기</strong>
+                <span>더 들를 곳이 있으면 추가를 눌러 2번, 3번을 붙인다</span>
+              </li>
+              <li>
+                <strong>경로 그리기</strong>
+                <span>다 골랐으면 지도에 경로선과 번호를 그린다</span>
+              </li>
+            </ol>
+            <ul>
+              <li>방문 순서는 사용자가 쌓은 순서 그대로다. 자동 정렬은 하지 않는다</li>
+              <li>중간에 뺄 수 있어야 한다. 빼면 뒤 번호가 당겨진다</li>
+              <li>구간마다 이동 시간과 거리를 보여준다</li>
+              <li>
+                거리는 직선거리 계산으로 낸다. 네이버 API로 실제 경로를 받을 수 있는지
+                <span class="tag tag-pending">확인 필요</span>
+              </li>
+              <li>지도 위에 경로선을 그리고, 출발 → 1 → 2 순으로 번호를 붙인다</li>
+            </ul>
+          </section>
+        </li>
+      </ul>
+
+      <h2>이후 확장 — 다 하고 나서</h2>
+      <ul class="cards">
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <h3>MCP로 상용 AI 서비스 연결</h3>
+              <span class="tag tag-later">후순위</span>
+            </div>
+            <p>
+              외부 AI가 내가 스크랩한 장소 목록을 읽고, 키워드를 받아 장소를 제안한다. 미팅에서 "이건
+              나중에 합시다. 다 하고"로 정리됐다.
+            </p>
+          </section>
+        </li>
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <h3>방문 기록 · 한줄평</h3>
+              <span class="tag tag-later">후순위</span>
+              <span class="owner">담당 미정</span>
+            </div>
+            <p>저장한 스팟에 덧붙이는 정보다. 미팅에서 "누군가 해줘"로 남았다.</p>
+            <ul>
+              <li>방문 여부 · 방문 횟수</li>
+              <li>한줄평 · 메모</li>
+            </ul>
+          </section>
+        </li>
+
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <h3>통계 · 리뷰 기반 추천</h3>
+              <span class="tag tag-later">후순위</span>
+              <span class="owner">담당 미정</span>
+            </div>
+            <ul>
+              <li>차트 — 예: 26년에 많이 가본 장소 TOP 10</li>
+              <li>리뷰를 반영한 비슷한 결의 AI 추천</li>
+              <li>광고 연결 <span class="tag tag-pending">아이디어 단계</span></li>
+            </ul>
+          </section>
+        </li>
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <h3>다른 사람에게 공유</h3>
+              <span class="tag tag-later">후순위</span>
+            </div>
+            <p>1인 사용이 기본이고, 시간이 남으면 공유 기능을 추가하기로 했다.</p>
+          </section>
+        </li>
+        <li>
+          <section class="step">
+            <div class="step-head">
+              <h3>대화형 챗봇</h3>
+              <span class="tag tag-pending">미정</span>
+            </div>
+            <p>AI 활용 방향으로 언급만 됐고, 어느 화면에 어떻게 붙일지는 정해지지 않았다.</p>
+          </section>
+        </li>
+      </ul>
+
+      <h2>확정된 전제</h2>
+      <ul>
+        <li>앱 배포는 어려우므로 <strong>웹</strong>으로 진행한다</li>
+        <li>GitHub Organization은 유료라 쓰지 않고 <strong>개인 배포</strong>로 간다</li>
+        <li>기본은 1인 사용, 공유는 시간이 남으면 추가한다</li>
+        <li>앞으로 모든 진행은 GitHub 이슈로 관리한다</li>
+      </ul>
+
+    </main>
+  </body>
+</html>
