@@ -266,6 +266,15 @@
         color: var(--muted);
       }
 
+      .cards {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
       .branches {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -526,16 +535,20 @@
               <li>저장된 좌표에 핀을 찍고, 지도를 그쪽으로 이동시킨다</li>
               <li>화면 아래에는 저장된 정보를 함께 띄운다</li>
               <li>닫으면 초기 화면으로 돌아간다</li>
-              <li>방금 찍은 핀만 보여준다. 저장된 핀 전체를 보는 곳은 STEP 6이다</li>
+              <li>방금 찍은 핀만 보여준다. 저장된 핀 전체는 "내 스팟 지도"에서 본다</li>
               <li>내 위치를 함께 보여줄지 <span class="tag tag-pending">미정</span> — 기능으로 넣을지부터 정해야 한다</li>
             </ul>
           </section>
         </li>
 
+      </ol>
+
+      <h2>메인 플로우 외 세부 기능</h2>
+      <p>스팟을 저장한 뒤, 각각 따로 들어가는 화면이다.</p>
+      <ul class="cards">
         <li>
           <section class="step">
             <div class="step-head">
-              <span class="step-number"></span>
               <h3>내 스팟 지도 — 저장된 핀 보기</h3>
               <span class="tag tag-pending">담당 미정</span>
             </div>
@@ -551,7 +564,6 @@
         <li>
           <section class="step">
             <div class="step-head">
-              <span class="step-number"></span>
               <h3>필터 · 카테고리</h3>
               <span class="tag tag-pending">미정 · 담당 없음</span>
             </div>
@@ -565,7 +577,6 @@
         <li>
           <section class="step">
             <div class="step-head">
-              <span class="step-number"></span>
               <h3>스마트 동선 가이드</h3>
               <span class="tag tag-confirmed">확정</span>
               <span class="owner">담당 · 화균, 주히(고민중)</span>
@@ -604,14 +615,13 @@
             </ul>
           </section>
         </li>
-      </ol>
+      </ul>
 
       <h2>이후 확장 — 다 하고 나서</h2>
-      <ol class="flow">
+      <ul class="cards">
         <li>
           <section class="step">
             <div class="step-head">
-              <span class="step-number"></span>
               <h3>MCP로 상용 AI 서비스 연결</h3>
               <span class="tag tag-later">후순위</span>
             </div>
@@ -624,7 +634,6 @@
         <li>
           <section class="step">
             <div class="step-head">
-              <span class="step-number"></span>
               <h3>방문 기록 · 한줄평</h3>
               <span class="tag tag-later">후순위</span>
               <span class="owner">담당 미정</span>
@@ -640,7 +649,6 @@
         <li>
           <section class="step">
             <div class="step-head">
-              <span class="step-number"></span>
               <h3>통계 · 리뷰 기반 추천</h3>
               <span class="tag tag-later">후순위</span>
               <span class="owner">담당 미정</span>
@@ -655,7 +663,6 @@
         <li>
           <section class="step">
             <div class="step-head">
-              <span class="step-number"></span>
               <h3>다른 사람에게 공유</h3>
               <span class="tag tag-later">후순위</span>
             </div>
@@ -665,14 +672,13 @@
         <li>
           <section class="step">
             <div class="step-head">
-              <span class="step-number"></span>
               <h3>대화형 챗봇</h3>
               <span class="tag tag-pending">미정</span>
             </div>
             <p>AI 활용 방향으로 언급만 됐고, 어느 화면에 어떻게 붙일지는 정해지지 않았다.</p>
           </section>
         </li>
-      </ol>
+      </ul>
 
       <h2>확정된 전제</h2>
       <ul>
