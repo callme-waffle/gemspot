@@ -23,7 +23,7 @@ import tseslint from 'typescript-eslint';
 const NO_ESCAPED_HEX = {
   selector: 'Literal[value=/^\\[#/]',
   message:
-    '색은 panda/preset.ts의 시맨틱 토큰에서 옵니다. `[#hex]` 대괄호 이스케이프로 색을 직접 박지 마세요 — 라이트/다크 한쪽에서만 맞는 값이 됩니다.',
+    '색은 Panda 공식 프리셋의 팔레트 토큰에서 옵니다. `[#hex]` 대괄호 이스케이프로 색을 직접 박지 마세요 — 라이트/다크 한쪽에서만 맞는 값이 됩니다.',
 } as const;
 
 /**
