@@ -84,15 +84,24 @@ src/shared                      순수 계약. 아무것도 import하지 않는�
 
 ## 스타일
 
-Panda CSS. 토큰 정의는 전부 `panda/preset.ts`에 있고 두 층으로 나뉜다.
+Panda CSS. **토큰은 직접 만들지 않는다** — 팔레트·타이포·radii·spacing은 전부
+공식 프리셋(`@pandacss/dev/presets`)에서 온다. `panda.config.ts`가 다루는 것은
+파이프라인뿐이다(무엇을 스캔하고, 어디로 생성하고, 어떤 값을 금지하는가).
 
-- **원시 팔레트** (`slate.700`, `gem.600`) — 색 값 그 자체. 컴포넌트에서 직접
-  쓰지 않는다.
-- **시맨틱 토큰** (`bg.canvas`, `fg.muted`, `accent.base`) — 역할 이름. `_dark`
-  값을 함께 들고 있어서 컴포넌트는 테마를 모른 채 역할만 고른다.
+그 프리셋에는 시맨틱 층이 없다. 그래서 컴포넌트는 팔레트 이름을 직접 고르고,
+라이트/다크 짝을 `_dark` 조건으로 함께 든다.
 
-컴포넌트가 여는 문은 시맨틱 토큰뿐이다. 팔레트를 갈아끼워도 컴포넌트는 한 줄도
-바뀌지 않는다.
+```ts
+const card = css({
+  bg: 'white',
+  color: 'slate.900',
+  _dark: { bg: 'slate.900', color: 'slate.100' },
+});
+```
+
+거래는 명확하다 — 유지할 토큰 파일이 없어지는 대신, 팔레트를 갈아끼우면 색을
+쓰는 자리를 전부 고쳐야 한다. 역할 이름이 다시 필요해지면 그때
+`semanticTokens`를 얹는다.
 
 테마는 `<html data-theme>`으로 전환한다. 첫 페인트 **전에** 도는 인라인 스크립트
 (`src/app/theme-script.ts`)가 localStorage → 시스템 설정 순으로 값을 정하므로

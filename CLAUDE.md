@@ -17,8 +17,7 @@ pnpm build         # next build
 고칠 때마다 가장 가까운 게이트를, 커밋을 마무리하기 전에 넷 전부를 돌린다.
 
 `styled-system/`은 `panda codegen`이 만드는 생성 트리다(`prepare` 훅). **고치지도
-커밋하지도 않는다** — 거기서 타입 오류가 나면 원인은 `panda/preset.ts`나
-`panda.config.ts`에 있다.
+커밋하지도 않는다** — 거기서 타입 오류가 나면 원인은 `panda.config.ts`에 있다.
 
 ## 커밋
 
@@ -40,9 +39,18 @@ pnpm build         # next build
   (`noInlineConfig` + `@eslint-community/eslint-comments/no-use`). 예외가 정말
   필요하면 `eslint.config.mts`에 `files:` 스코프 블록으로, 이유를 주석에 적어
   추가한다. 룰을 끄는 결정이 한 파일에 모여 있어야 나중에 그 근거를 다시 물을 수 있다.
-- **색은 `panda/preset.ts`의 시맨틱 토큰에서만 온다.** `'[#hex]'` 대괄호
-  이스케이프는 lint가 막는다 — 그렇게 박은 색은 라이트/다크 한쪽에서만 맞고,
-  그 회귀는 화면을 봐야 발견된다.
+- **토큰은 직접 만들지 않는다.** 팔레트·타이포·radii·spacing은 전부 Panda
+  공식 프리셋(`@pandacss/dev/presets`)에서 온다. `panda.config.ts`의
+  `theme.extend`에 토큰을 새로 얹기 전에, 프리셋에 대응이 정말 없는지부터
+  확인한다.
+- **`'[#hex]'` 대괄호 이스케이프로 색을 박는 것은 lint가 막는다.** 그렇게 박은
+  색은 라이트/다크 한쪽에서만 맞고, 그 회귀는 화면을 봐야 발견된다.
+- **라이트/다크 짝은 컴포넌트가 든다.** 프리셋에 시맨틱 층이 없어서 색을 쓰는
+  자리마다 `_dark`가 함께 온다. 한쪽만 고치면 반대 테마에서 대비가 깨진다 —
+  색을 건드렸으면 두 테마를 다 보고 넘긴다.
+- **`html` 엘리먼트에는 `_dark`가 듣지 않는다.** 그 조건은
+  `[data-theme=dark] &`로 풀리는데 `&`가 html 자신이라 속성을 든 엘리먼트를
+  제 조상에서 찾게 된다. globalCss의 그 한 자리만 `&[data-theme=dark]`를 쓴다.
 - 새 도메인을 추가할 때 고칠 곳은 `eslint.config.mts` 두 군데다
   (`boundaries/elements` + `policies`). 절차는 README의 "새 도메인을 추가하려면".
 - `vitest.config.mts`의 include, `tsconfig.test.json`의 include, `eslint.config.mts`의
