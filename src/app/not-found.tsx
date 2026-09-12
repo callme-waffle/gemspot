@@ -3,7 +3,7 @@ import { css } from 'styled-system/css';
 import { HOME_PATH } from '@/shared/routes';
 
 const shell = css({
-  maxWidth: 'content',
+  maxWidth: '4xl',
   mx: 'auto',
   px: '6',
   py: '24',
@@ -14,16 +14,23 @@ const shell = css({
 });
 
 const code = css({
-  textStyle: 'display',
+  textStyle: '4xl',
+  fontWeight: 'bold',
+  letterSpacing: 'tight',
   fontFamily: 'mono',
-  color: 'fg.subtle',
+  color: 'slate.500',
 });
-const message = css({ textStyle: 'body', color: 'fg.muted' });
+const message = css({
+  textStyle: 'md',
+  color: 'slate.600',
+  _dark: { color: 'slate.400' },
+});
 const link = css({
-  textStyle: 'caption',
-  color: 'accent.base',
+  textStyle: 'sm',
+  color: 'violet.600',
   textDecoration: 'none',
   _hover: { textDecoration: 'underline' },
+  _dark: { color: 'violet.400' },
 });
 
 export default function NotFound() {

@@ -8,31 +8,48 @@ const card = css({
   flexDirection: 'column',
   gap: '2',
   p: '5',
-  rounded: 'md',
-  borderWidth: 'hairline',
+  rounded: 'lg',
+  borderWidth: '1px',
   borderStyle: 'solid',
-  borderColor: 'border.subtle',
-  bg: 'bg.surface',
+  borderColor: 'slate.200',
+  bg: 'white',
   textDecoration: 'none',
-  color: 'fg.base',
+  color: 'slate.900',
   transition: 'colors',
   _hover: {
-    borderColor: 'accent.base',
+    borderColor: 'violet.600',
+  },
+  _dark: {
+    borderColor: 'slate.800',
+    bg: 'slate.900',
+    color: 'slate.100',
+    _hover: {
+      borderColor: 'violet.400',
+    },
   },
 });
 
-const title = css({ textStyle: 'heading' });
-const summary = css({ textStyle: 'caption', color: 'fg.muted' });
+const title = css({
+  textStyle: 'xl',
+  fontWeight: 'semibold',
+  letterSpacing: 'tight',
+});
+const summary = css({
+  textStyle: 'sm',
+  color: 'slate.600',
+  _dark: { color: 'slate.400' },
+});
 
 const score = css({
   alignSelf: 'flex-start',
   px: '2',
   py: '0.5',
-  rounded: 'pill',
-  bg: 'accent.subtle',
-  color: 'accent.base',
-  textStyle: 'caption',
+  rounded: 'full',
+  bg: 'violet.100',
+  color: 'violet.600',
+  textStyle: 'sm',
   fontFamily: 'mono',
+  _dark: { bg: 'violet.950', color: 'violet.400' },
 });
 
 export function ItemCard({ item }: { item: ExampleItem }) {

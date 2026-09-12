@@ -17,7 +17,7 @@ interface PageProps {
 }
 
 const shell = css({
-  maxWidth: 'content',
+  maxWidth: '4xl',
   mx: 'auto',
   px: '6',
   py: '12',
@@ -27,20 +27,29 @@ const shell = css({
 });
 
 const backLink = css({
-  textStyle: 'caption',
-  color: 'accent.base',
+  textStyle: 'sm',
+  color: 'violet.600',
   textDecoration: 'none',
   _hover: { textDecoration: 'underline' },
+  _dark: { color: 'violet.400' },
 });
 
-const title = css({ textStyle: 'display' });
-const summary = css({ textStyle: 'body', color: 'fg.muted' });
+const title = css({
+  textStyle: '4xl',
+  fontWeight: 'bold',
+  letterSpacing: 'tight',
+});
+const summary = css({
+  textStyle: 'md',
+  color: 'slate.600',
+  _dark: { color: 'slate.400' },
+});
 
 const factRow = css({
   display: 'flex',
   gap: '4',
-  textStyle: 'caption',
-  color: 'fg.subtle',
+  textStyle: 'sm',
+  color: 'slate.500',
   fontFamily: 'mono',
 });
 

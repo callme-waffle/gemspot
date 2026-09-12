@@ -12,7 +12,7 @@ import { loadExampleBoard } from '@/domain/example';
  */
 
 const shell = css({
-  maxWidth: 'content',
+  maxWidth: '4xl',
   mx: 'auto',
   px: '6',
   py: '12',
@@ -29,11 +29,23 @@ const header = css({
   flexWrap: 'wrap',
 });
 
-const wordmark = css({ textStyle: 'display', fontFamily: 'mono' });
-const lede = css({ textStyle: 'body', color: 'fg.muted', maxWidth: 'content' });
+const wordmark = css({
+  textStyle: '4xl',
+  fontWeight: 'bold',
+  letterSpacing: 'tight',
+  fontFamily: 'mono',
+});
+const lede = css({
+  textStyle: 'md',
+  color: 'slate.600',
+  maxWidth: '4xl',
+  _dark: { color: 'slate.400' },
+});
 
 const sectionTitle = css({
-  textStyle: 'heading',
+  textStyle: 'xl',
+  fontWeight: 'semibold',
+  letterSpacing: 'tight',
   mb: '4',
 });
 
@@ -41,11 +53,12 @@ const layerList = css({
   display: 'flex',
   flexDirection: 'column',
   gap: '0',
-  rounded: 'md',
-  borderWidth: 'hairline',
+  rounded: 'lg',
+  borderWidth: '1px',
   borderStyle: 'solid',
-  borderColor: 'border.subtle',
+  borderColor: 'slate.200',
   overflow: 'hidden',
+  _dark: { borderColor: 'slate.800' },
 });
 
 const layerRow = css({
@@ -54,21 +67,27 @@ const layerRow = css({
   gap: '4',
   px: '5',
   py: '4',
-  bg: 'bg.surface',
-  borderBottomWidth: 'hairline',
+  bg: 'white',
+  borderBottomWidth: '1px',
   borderBottomStyle: 'solid',
-  borderBottomColor: 'border.subtle',
+  borderBottomColor: 'slate.200',
   // 마지막 행의 밑줄은 컨테이너 테두리와 겹쳐 2px로 보인다. Panda에 `_notLast`
   // 조건은 없으므로(생성된 conditions.d.ts 참고) 전부 긋고 마지막만 지운다.
   _last: { borderBottomStyle: 'none' },
+  _dark: { bg: 'slate.900', borderBottomColor: 'slate.800' },
 });
 
 const layerName = css({
   fontFamily: 'mono',
-  textStyle: 'caption',
-  color: 'accent.base',
+  textStyle: 'sm',
+  color: 'violet.600',
+  _dark: { color: 'violet.400' },
 });
-const layerNote = css({ textStyle: 'caption', color: 'fg.muted' });
+const layerNote = css({
+  textStyle: 'sm',
+  color: 'slate.600',
+  _dark: { color: 'slate.400' },
+});
 
 const grid = css({
   display: 'grid',
@@ -87,23 +106,29 @@ const meta = css({
 const badge = css({
   px: '2',
   py: '0.5',
-  rounded: 'pill',
-  textStyle: 'caption',
+  rounded: 'full',
+  textStyle: 'sm',
   fontFamily: 'mono',
-  borderWidth: 'hairline',
+  borderWidth: '1px',
   borderStyle: 'solid',
 });
 
 const seedBadge = css({
-  borderColor: 'negative.base',
-  color: 'negative.base',
-  bg: 'negative.subtle',
+  borderColor: 'red.600',
+  color: 'red.600',
+  bg: 'red.100',
+  _dark: { borderColor: 'red.400', color: 'red.400', bg: 'red.900' },
 });
 
 const remoteBadge = css({
-  borderColor: 'positive.base',
-  color: 'positive.base',
-  bg: 'positive.subtle',
+  borderColor: 'emerald.600',
+  color: 'emerald.600',
+  bg: 'emerald.100',
+  _dark: {
+    borderColor: 'emerald.400',
+    color: 'emerald.400',
+    bg: 'emerald.900',
+  },
 });
 
 /** 레이어 표의 내용. 여기 한 줄과 eslint.config.mts의 policies 한 줄이 짝이다. */
